@@ -8,6 +8,11 @@
 
 #include <pddi/gles/gl.hpp>
 
+struct SDL_Window;
+
+// value matches wl_output_transform (0..3); a no-op stub unless RAD_AURORA_WAYLAND
+void AuroraSetBufferTransform(SDL_Window* window, int transform);
+
 class pglAuroraFBO
 {
 public:

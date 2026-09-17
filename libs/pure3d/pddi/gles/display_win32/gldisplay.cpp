@@ -11,6 +11,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<math.h>
+#include<stdlib.h>
 
 #if defined(RAD_ANDROID)
 #include <jni.h>
@@ -457,6 +458,14 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
 
 #ifdef RAD_AURORA_FBO
     pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+
+    const char* scaleEnv = getenv("SRR2_FBO_SCALE");
+    if(scaleEnv && *scaleEnv)
+    {
+        auroraFBO->SetScale((float)atof(scaleEnv));
+        SDL_Log("AuroraFBO: SRR2_FBO_SCALE=%s -> %.3f", scaleEnv, auroraFBO->GetScale());
+    }
+
     auroraFBO->SetRealSize(realDrawableWidth, realDrawableHeight);
     if(auroraFBO->Create(realDrawableWidth, realDrawableHeight))
     {

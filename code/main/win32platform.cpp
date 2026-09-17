@@ -14,6 +14,10 @@
 // System Includes
 //========================================
 #include <SDL.h>
+
+#ifdef RAD_AURORA_FBO
+#include <pddi/gles/aurorafbo.hpp>
+#endif
 // Standard Lib
 #include <stdlib.h>
 #include <string.h>
@@ -1757,6 +1761,141 @@ void Win32Platform::ShutdownPure3D()
 }
 
 //==============================================================================
+
+#ifdef RAD_AURORA_FBO
+static int gAuroraDisplayIndex = -1;
+static bool gAuroraPortraitPanel = false;
+static int gAuroraTransform = -1;
+
+static int AuroraCurrentDisplayIndex(SDL_Window* wnd)
+{
+#if SDL_MAJOR_VERSION < 3
+    return SDL_GetWindowDisplayIndex(wnd);
+#else
+    return (int)SDL_GetDisplayForWindow(wnd);
+#endif
+}
+
+static bool AuroraIsPortraitPanel(SDL_Window* wnd)
+{
+#if SDL_MAJOR_VERSION < 3
+    int displayIndex = AuroraCurrentDisplayIndex(wnd);
+    SDL_DisplayMode mode;
+    if(displayIndex < 0)
+        return false;
+    if(SDL_GetCurrentDisplayMode(displayIndex, &mode) != 0)
+        return false;
+    return mode.h > mode.w;
+#else
+    const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode((SDL_DisplayID)AuroraCurrentDisplayIndex(wnd));
+    if(!mode)
+        return false;
+    return mode->h > mode->w;
+#endif
+}
+
+static int AuroraCurrentOrientation(SDL_Window* wnd)
+{
+#if SDL_MAJOR_VERSION < 3
+    int displayIndex = AuroraCurrentDisplayIndex(wnd);
+    if(displayIndex < 0)
+        return SDL_ORIENTATION_UNKNOWN;
+    return (int)SDL_GetDisplayOrientation(displayIndex);
+#else
+    // SDL3: нет прямого запроса ориентации в этой версии, только события SDL_EVENT_DISPLAY_ORIENTATION
+    return SDL_ORIENTATION_UNKNOWN;
+#endif
+}
+
+static int AuroraMapOrientation(int orientation, bool portraitPanel)
+{
+    switch(orientation)
+    {
+    case SDL_ORIENTATION_LANDSCAPE:
+        return portraitPanel ? 1 : 0;
+    case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+        return portraitPanel ? 3 : 2;
+    case SDL_ORIENTATION_PORTRAIT:
+        return portraitPanel ? 3 : 2;
+    case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+        return portraitPanel ? 1 : 0;
+    default:
+        return -1; // SDL_ORIENTATION_UNKNOWN: не менять текущий transform
+    }
+}
+
+static void AuroraApplyTransform(SDL_Window* wnd, int transform)
+{
+    if(transform < 0 || transform == gAuroraTransform)
+        return;
+    gAuroraTransform = transform;
+
+    pglAuroraFBO::GetInstance()->SetRotation((pglAuroraFBO::AuroraRotation)transform);
+    AuroraSetBufferTransform(wnd, transform);
+
+    SDL_Log("AuroraFBO: transform -> %d (%s panel)",
+        transform, gAuroraPortraitPanel ? "portrait" : "landscape");
+}
+
+static void AuroraUpdateOrientation(SDL_Window* wnd, int orientation)
+{
+    if(orientation < 0)
+        orientation = AuroraCurrentOrientation(wnd);
+    AuroraApplyTransform(wnd, AuroraMapOrientation(orientation, gAuroraPortraitPanel));
+}
+
+static void AuroraRefreshDisplay(SDL_Window* wnd)
+{
+    int displayIndex = AuroraCurrentDisplayIndex(wnd);
+    if(displayIndex < 0 || displayIndex == gAuroraDisplayIndex)
+        return;
+    gAuroraDisplayIndex = displayIndex;
+    gAuroraPortraitPanel = AuroraIsPortraitPanel(wnd);
+    gAuroraTransform = -1;
+
+    SDL_Log("AuroraFBO: window moved to display %d (%s panel)",
+        displayIndex, gAuroraPortraitPanel ? "portrait" : "landscape");
+
+    AuroraUpdateOrientation(wnd, -1);
+}
+
+static void AuroraInitOrientation(SDL_Window* wnd)
+{
+    gAuroraDisplayIndex = AuroraCurrentDisplayIndex(wnd);
+    gAuroraPortraitPanel = AuroraIsPortraitPanel(wnd);
+    gAuroraTransform = -1;
+
+    SDL_Log("AuroraFBO: display %d, %s panel",
+        gAuroraDisplayIndex, gAuroraPortraitPanel ? "portrait" : "landscape");
+
+    AuroraUpdateOrientation(wnd, -1);
+
+    const char* force = getenv("SRR2_FORCE_ROTATION");
+    if(force && *force)
+    {
+        int transform = -1;
+        if(!strcmp(force, "0") || !SDL_strcasecmp(force, "normal") || !SDL_strcasecmp(force, "landscape"))
+            transform = 0;
+        else if(!strcmp(force, "1") || !SDL_strcasecmp(force, "90") || !SDL_strcasecmp(force, "portrait"))
+            transform = 1;
+        else if(!strcmp(force, "2") || !SDL_strcasecmp(force, "180") || !SDL_strcasecmp(force, "inverted_landscape"))
+            transform = 2;
+        else if(!strcmp(force, "3") || !SDL_strcasecmp(force, "270") || !SDL_strcasecmp(force, "inverted_portrait"))
+            transform = 3;
+
+        if(transform >= 0)
+        {
+            SDL_Log("AuroraFBO: SRR2_FORCE_ROTATION=%s -> forced transform %d", force, transform);
+            gAuroraTransform = -1;
+            AuroraApplyTransform(wnd, transform);
+        }
+        else
+            SDL_Log("AuroraFBO: SRR2_FORCE_ROTATION=%s not understood, ignored", force);
+    }
+}
+#endif // RAD_AURORA_FBO
+
+//=============================================================================
 // Win32Platform::InitializeContext
 //==============================================================================
 // Description: Initializes the d3d context for this application according to
@@ -1856,6 +1995,10 @@ void Win32Platform::InitializeContext()
 		
         #endif
     }
+
+#ifdef RAD_AURORA_FBO
+    AuroraInitOrientation( mWnd );
+#endif
 }
 
 //==============================================================================
@@ -2087,6 +2230,15 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
             if (p3d::platform != NULL)
                 p3d::platform->ProcessWindowsMessage( wnd, &event->window );
 
+#ifdef RAD_AURORA_FBO
+#if SDL_MAJOR_VERSION < 3
+            if( event->window.event == SDL_WINDOWEVENT_MOVED )
+#else
+            if( event->window.type == SDL_EVENT_WINDOW_MOVED )
+#endif
+                AuroraRefreshDisplay( wnd );
+#endif
+
             if( spInstance != NULL && spInstance->mpContext != NULL )
             {
                 InputManager* pInputManager = GetInputManager();
@@ -2169,6 +2321,24 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
 
             break;
         }
+
+#ifdef RAD_AURORA_FBO
+#if SDL_MAJOR_VERSION < 3
+    case SDL_DISPLAYEVENT:
+        if( event->display.event == SDL_DISPLAYEVENT_ORIENTATION )
+            AuroraUpdateOrientation( wnd, event->display.data1 );
+        else if( event->display.event == SDL_DISPLAYEVENT_CONNECTED )
+            AuroraRefreshDisplay( wnd );
+        break;
+#else
+    case SDL_EVENT_DISPLAY_ORIENTATION:
+        AuroraUpdateOrientation( wnd, event->display.data1 );
+        break;
+    case SDL_EVENT_DISPLAY_CONNECTED:
+        AuroraRefreshDisplay( wnd );
+        break;
+#endif
+#endif // RAD_AURORA_FBO
 
 #if SDL_MAJOR_VERSION < 3
     case SDL_KEYDOWN: // WM_SYSKEYDOWN

@@ -7,6 +7,29 @@
 #include <SDL.h>
 #include <string.h>
 
+#if defined(RAD_AURORA_WAYLAND)
+#include <wayland-client.h>
+#include <SDL_syswm.h>
+
+void AuroraSetBufferTransform(SDL_Window* window, int transform)
+{
+    if(!window)
+        return;
+
+    SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    if(SDL_GetWindowWMInfo(window, &wmInfo) != SDL_TRUE)
+        return;
+
+    if(wmInfo.subsystem == SDL_SYSWM_WAYLAND && wmInfo.info.wl.surface != NULL)
+        wl_surface_set_buffer_transform((struct wl_surface*)wmInfo.info.wl.surface, (uint32_t)transform);
+}
+#else
+void AuroraSetBufferTransform(SDL_Window*, int)
+{
+}
+#endif
+
 pglAuroraFBO* pglAuroraFBO::instance = NULL;
 
 static const char* auroraBlitVertexShader =
