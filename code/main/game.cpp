@@ -41,6 +41,10 @@
 #include <main/game.h>
 #include <main/platform.h>
 
+#ifdef RAD_AURORA_FBO
+#include <main/win32platform.h>
+#endif
+
 #ifdef RAD_GAMECUBE
 #include <main/gamecube_extras/gcmanager.h>
 #endif
@@ -868,6 +872,20 @@ void Game::Run()
         SDL_Event msg;
         while( SDL_PollEvent( &msg ) )
         {
+#ifdef RAD_AURORA_FBO
+#if SDL_MAJOR_VERSION < 3
+            if( msg.type == SDL_FINGERDOWN || msg.type == SDL_FINGERMOTION || msg.type == SDL_FINGERUP )
+#else
+            if( msg.type == SDL_EVENT_FINGER_DOWN || msg.type == SDL_EVENT_FINGER_MOTION || msg.type == SDL_EVENT_FINGER_UP )
+#endif
+            {
+                float fingerX = msg.tfinger.x;
+                float fingerY = msg.tfinger.y;
+                AuroraTransformFinger( fingerX, fingerY );
+                msg.tfinger.x = fingerX;
+                msg.tfinger.y = fingerY;
+            }
+#endif
             UpdateTouchInputModeFromSDLEvent( msg );
             #ifdef RAD_ANDROID
                 UpdateTouchHudSystemFromSDLEvent( msg );

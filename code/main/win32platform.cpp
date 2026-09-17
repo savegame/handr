@@ -1833,8 +1833,17 @@ static void AuroraApplyTransform(SDL_Window* wnd, int transform)
     pglAuroraFBO::GetInstance()->SetRotation((pglAuroraFBO::AuroraRotation)transform);
     AuroraSetBufferTransform(wnd, transform);
 
-    SDL_Log("AuroraFBO: transform -> %d (%s panel)",
-        transform, gAuroraPortraitPanel ? "portrait" : "landscape");
+    static const char* inverseFingerMap[pglAuroraFBO::AURORA_ROTATION_COUNT] =
+    {
+        "(x,y)",
+        "(1-y,x)",
+        "(1-x,1-y)",
+        "(y,1-x)",
+    };
+
+    SDL_Log("AuroraFBO: transform -> %d (%s panel), input inverse (finger): %s",
+        transform, gAuroraPortraitPanel ? "portrait" : "landscape",
+        inverseFingerMap[transform]);
 }
 
 static void AuroraUpdateOrientation(SDL_Window* wnd, int orientation)
@@ -1891,6 +1900,97 @@ static void AuroraInitOrientation(SDL_Window* wnd)
         }
         else
             SDL_Log("AuroraFBO: SRR2_FORCE_ROTATION=%s not understood, ignored", force);
+    }
+}
+
+int AuroraGetRotation()
+{
+    int transform = gAuroraTransform;
+    if(transform < 0)
+        transform = 0;
+    return transform;
+}
+
+void AuroraTransformWindowToFBO( int& x, int& y )
+{
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+
+    const int realW = auroraFBO->GetRealWidth();
+    const int realH = auroraFBO->GetRealHeight();
+    const int fboW = auroraFBO->GetWidth();
+    const int fboH = auroraFBO->GetHeight();
+
+    if(realW <= 0 || realH <= 0 || fboW <= 0 || fboH <= 0)
+        return;
+
+    const float nx = (2.0f * (float)x) / (float)realW - 1.0f;
+    const float ny = 1.0f - (2.0f * (float)y) / (float)realH;
+
+    float lx, ly;
+    switch(AuroraGetRotation())
+    {
+    case 1:  lx =  ny; ly = -nx; break;
+    case 2:  lx = -nx; ly = -ny; break;
+    case 3:  lx = -ny; ly =  nx; break;
+    default: lx =  nx; ly =  ny; break;
+    }
+
+    x = (int)(((lx + 1.0f) * 0.5f) * (float)fboW);
+    y = (int)(((1.0f - ly) * 0.5f) * (float)fboH);
+}
+
+void AuroraTransformFBOToWindow( int& x, int& y )
+{
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+
+    const int realW = auroraFBO->GetRealWidth();
+    const int realH = auroraFBO->GetRealHeight();
+    const int fboW = auroraFBO->GetWidth();
+    const int fboH = auroraFBO->GetHeight();
+
+    if(realW <= 0 || realH <= 0 || fboW <= 0 || fboH <= 0)
+        return;
+
+    const float lx = (2.0f * (float)x) / (float)fboW - 1.0f;
+    const float ly = 1.0f - (2.0f * (float)y) / (float)fboH;
+
+    float nx, ny;
+    switch(AuroraGetRotation())
+    {
+    case 1:  nx = -ly; ny =  lx; break;
+    case 2:  nx = -lx; ny = -ly; break;
+    case 3:  nx =  ly; ny = -lx; break;
+    default: nx =  lx; ny =  ly; break;
+    }
+
+    x = (int)(((nx + 1.0f) * 0.5f) * (float)realW);
+    y = (int)(((1.0f - ny) * 0.5f) * (float)realH);
+}
+
+void AuroraTransformFinger( float& x, float& y )
+{
+    switch(AuroraGetRotation())
+    {
+    case 1:
+    {
+        const float t = x;
+        x = 1.0f - y;
+        y = t;
+        break;
+    }
+    case 2:
+        x = 1.0f - x;
+        y = 1.0f - y;
+        break;
+    case 3:
+    {
+        const float t = x;
+        x = y;
+        y = 1.0f - t;
+        break;
+    }
+    default:
+        break;
     }
 }
 #endif // RAD_AURORA_FBO
@@ -2376,9 +2476,17 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
             FEMouse* pFEMouse = GetInputManager()->GetFEMouse();
             if( pFEMouse->DidWeMove( event->motion.x, event->motion.y ) )
             {
+                int mouseX = event->motion.x;
+                int mouseY = event->motion.y;
                 int w, h;
                 SDL_GetWindowSize( wnd, &w, &h );
-                pFEMouse->Move( event->motion.x, event->motion.y, w, h );
+#ifdef RAD_AURORA_FBO
+                AuroraTransformWindowToFBO( mouseX, mouseY );
+                pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+                w = auroraFBO->GetWidth();
+                h = auroraFBO->GetHeight();
+#endif
+                pFEMouse->Move( mouseX, mouseY, w, h );
             }
 #endif
 

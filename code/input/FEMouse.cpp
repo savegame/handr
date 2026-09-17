@@ -321,6 +321,10 @@ void FEMouse::SetupInGameMode()
 
         // Save the old cursor position.
         SDL_GetMouseState( &m_inGamePosX, &m_inGamePosY );
+#ifdef RAD_AURORA_FBO
+        // m_inGamePos хранится в координатах FBO, обратно перед warp возвращаемся в координаты окна
+        AuroraTransformWindowToFBO( m_inGamePosX, m_inGamePosY );
+#endif
 
         // Center the cursor.
         SDL_WarpMouseInWindow( wnd, w / 2, h / 2 );
@@ -345,6 +349,9 @@ void FEMouse::SetupInGameMode()
         // Restore the old cursor position.
         if( m_inGamePosX != -1 )
         {
+#ifdef RAD_AURORA_FBO
+            AuroraTransformFBOToWindow( m_inGamePosX, m_inGamePosY );
+#endif
             SDL_WarpMouseInWindow( wnd, m_inGamePosX, m_inGamePosY );
             m_inGamePosX = -1;
         }

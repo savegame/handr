@@ -166,4 +166,13 @@ private:
     char mRenderer[ConfigString::MaxLength];
 };
 
+#ifdef RAD_AURORA_FBO
+// Input transform helpers: native window coordinates <-> FBO-local coordinates,
+// inverse to the FBO blit rotation. No allocations, no SDL calls (cached values only).
+int  AuroraGetRotation();
+void AuroraTransformWindowToFBO( int& x, int& y );
+void AuroraTransformFBOToWindow( int& x, int& y );
+void AuroraTransformFinger( float& x, float& y );
+#endif
+
 #endif // WIN32PLATFORM_H
