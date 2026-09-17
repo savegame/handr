@@ -10,6 +10,10 @@
 #include <pddi/gles/glmat.hpp>
 #include <pddi/gles/glprog.hpp>
 
+#ifdef RAD_AURORA_FBO
+#include <pddi/gles/aurorafbo.hpp>
+#endif
+
 #include <pddi/base/debug.hpp>
 #include <math.h>
 #include <string.h>
@@ -352,6 +356,12 @@ pglContext::~pglContext()
 void pglContext::BeginFrame()
 {
     pddiBaseContext::BeginFrame();
+
+#ifdef RAD_AURORA_FBO
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+    if(auroraFBO->IsReady())
+        auroraFBO->Bind();
+#endif
 
     SDL_GL_SetSwapInterval(display->GetForceVSync() ? 1 : 0);
 
@@ -1217,6 +1227,19 @@ void pglContext::SetShaderProgram(pglProgram* program)
         SetAmbientLight(state.lightingState->ambient);
     }
 }
+
+#ifdef RAD_AURORA_FBO
+void pglContext::RestoreStateAfterFBOBlit()
+{
+    SetShaderProgram(NULL);
+
+    EnableZBuffer(state.renderState->zEnabled);
+    SetZCompare(state.renderState->zCompare);
+    SetZWrite(state.renderState->zWrite);
+    EnableStencilBuffer(state.stencilState->enabled);
+    SetScissor(&state.viewState->scissor);
+}
+#endif
 
 void pglContext::SetTextureEnvironment(const pglTextureEnv* texEnv)
 {

@@ -7,6 +7,10 @@
 #define _GLSURF_HPP_
 #include <pddi/pddi.hpp>
 
+#ifdef RAD_AURORA_FBO
+#include <pddi/gles/aurorafbo.hpp>
+#endif
+
 class pglContext;
 class pglWrapper;
 struct SDL_mutex;
@@ -56,6 +60,10 @@ public:
     void SetGamma(float r, float g, float b);
     void GetGamma(float* r, float* g, float* b);
 
+#ifdef RAD_AURORA_FBO
+    void UpdateAuroraFBO();
+#endif
+
 
 private:
     pddiDisplayMode mode;
@@ -77,6 +85,11 @@ private:
 
     bool extBGRA;
     bool reset;
+
+#ifdef RAD_AURORA_FBO
+    int realDrawableWidth;
+    int realDrawableHeight;
+#endif
 
     float beginTime;
 };

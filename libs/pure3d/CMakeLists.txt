@@ -140,6 +140,9 @@ elseif(SRR2_P3D_PDDI STREQUAL "GLES2")
 			"pddi/gles/display_win32/gldisplay.cpp"
 		)
 	endif()
+	if(SRR2_AURORA_FBO)
+		list(APPEND PDDI_SOURCES "pddi/gles/aurorafbo.cpp")
+	endif()
 else()
 	list(APPEND PDDI_SOURCES
 		"pddi/gl/glcon.cpp"

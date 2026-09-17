@@ -87,6 +87,10 @@ public :
     void SetShaderProgram(pglProgram* program);
     void SetTextureEnvironment(const pglTextureEnv* texEnv);
 
+#ifdef RAD_AURORA_FBO
+    void RestoreStateAfterFBOBlit();
+#endif
+
     unsigned contextID;
 
 protected:

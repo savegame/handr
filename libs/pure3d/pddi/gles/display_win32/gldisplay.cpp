@@ -110,11 +110,19 @@ pglDisplay ::pglDisplay(pddiDisplayInfo* info)
 
     reset = true;
 	m_ForceVSync = false;
+
+#ifdef RAD_AURORA_FBO
+    realDrawableWidth = 640;
+    realDrawableHeight = 480;
+#endif
 }
 
 pglDisplay ::~pglDisplay()
 {
     /* release and free the device context and rendering context */
+#ifdef RAD_AURORA_FBO
+    pglAuroraFBO::DestroyInstance();
+#endif
 #if SDL_MAJOR_VERSION < 3
     SDL_GL_DeleteContext(hRC);
     SDL_SetWindowGammaRamp(win, initialGammaRamp[0], initialGammaRamp[1], initialGammaRamp[2]);
@@ -163,6 +171,10 @@ long pglDisplay ::ProcessWindowMessage(SDL_Window* win, const SDL_WindowEvent* e
                 );
 #endif
             }
+
+#ifdef RAD_AURORA_FBO
+            UpdateAuroraFBO();
+#endif
             break;
         }
 
@@ -210,6 +222,10 @@ long pglDisplay ::ProcessWindowMessage(SDL_Window* win, const SDL_WindowEvent* e
                 );
 #endif
             }
+
+#ifdef RAD_AURORA_FBO
+            UpdateAuroraFBO();
+#endif
             break;
         }
 
@@ -357,6 +373,11 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
 
     winBitDepth = bpp;
 
+#ifdef RAD_AURORA_FBO
+    realDrawableWidth = winWidth;
+    realDrawableHeight = winHeight;
+#endif
+
     if (hRC)
         return true;
 
@@ -432,6 +453,16 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
     glEnable(GL_DEBUG_OUTPUT_KHR);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
     glDebugMessageCallback(MessageCallback, NULL);
+#endif
+
+#ifdef RAD_AURORA_FBO
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+    auroraFBO->SetRealSize(realDrawableWidth, realDrawableHeight);
+    if(auroraFBO->Create(realDrawableWidth, realDrawableHeight))
+    {
+        winWidth = auroraFBO->GetWidth();
+        winHeight = auroraFBO->GetHeight();
+    }
 #endif
 
     return true;
@@ -516,6 +547,16 @@ void pglDisplay::SetGamma(float r, float g, float b)
 
 void pglDisplay::SwapBuffers(void)
 {
+#ifdef RAD_AURORA_FBO
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+    if(auroraFBO->IsReady())
+    {
+        auroraFBO->Blit();
+        if(context)
+            context->RestoreStateAfterFBOBlit();
+        glViewport(0, 0, auroraFBO->GetWidth(), auroraFBO->GetHeight());
+    }
+#endif
     SDL_GL_SwapWindow(win);
     reset = false;
     #ifdef RAD_ANDROID
@@ -639,6 +680,11 @@ unsigned pglDisplay::Screenshot(pddiColour* buffer, int nBytes)
     if(nBytes < (winHeight * winWidth * 4))
         return 0;
 
+#ifdef RAD_AURORA_FBO
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+    if(auroraFBO->IsReady())
+        auroraFBO->Bind();
+#endif
     glReadPixels(0, 0,  winWidth, winHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE, buffer);
 
     unsigned tmp[2048];
@@ -673,6 +719,22 @@ void pglDisplay::BeginContext(void)
     int error = SDL_GL_MakeCurrent(win, (SDL_GLContext)hRC);
     PDDIASSERT(!error);
 }
+
+#ifdef RAD_AURORA_FBO
+void pglDisplay::UpdateAuroraFBO()
+{
+    realDrawableWidth = winWidth;
+    realDrawableHeight = winHeight;
+
+    pglAuroraFBO* auroraFBO = pglAuroraFBO::GetInstance();
+    auroraFBO->SetRealSize(realDrawableWidth, realDrawableHeight);
+    if(auroraFBO->Resize(realDrawableWidth, realDrawableHeight))
+    {
+        winWidth = auroraFBO->GetWidth();
+        winHeight = auroraFBO->GetHeight();
+    }
+}
+#endif
 
 void pglDisplay::EndContext(void)
 {

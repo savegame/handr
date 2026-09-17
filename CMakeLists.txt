@@ -14,6 +14,7 @@ option(SRR2_USE_BINK "Use RAD Game Tools Bink SDK instead of FFmpeg" OFF) #lo vu
 option(SRR2_BUILD_TESTS "Build sample programs for internal libraries" ON)
 option(SRR2_MICROPROFILE "Use microprofile instead of the internal profiler" OFF)
 option(SRR2_P3D_CG "Use CG shaders rather than GLSL for OpenGL ES" OFF)
+option(SRR2_AURORA_FBO "Render the scene to an offscreen FBO and blit it to the window (Aurora port)" OFF)
 
 
 
@@ -209,6 +210,9 @@ endif()
 if(SRR2_P3D_PDDI STREQUAL "GLES2")
 	add_definitions(-DRAD_GLES)
 	add_definitions(-DRAD_GLES_VERSION=2)
+endif()
+if(SRR2_AURORA_FBO)
+	add_definitions(-DRAD_AURORA_FBO)
 endif()
 
 if(WIN32)
