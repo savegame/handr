@@ -72,8 +72,8 @@ template < class T > class radLinkedClass
 		T * m_pLinkedClassNext;
 		T * m_pLinkedClassPrev;
 
-    inline static T* s_pLinkedClassHead = nullptr;
-    inline static T* s_pLinkedClassTail = nullptr;
+    inline static T* s_pLinkedClassHead;
+    inline static T* s_pLinkedClassTail;
 
 };
 

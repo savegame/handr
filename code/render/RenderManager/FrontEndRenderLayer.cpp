@@ -31,8 +31,8 @@
 #ifdef RAD_WIN32
 #include <input/inputmanager.h>
 #endif
-#ifdef RAD_ANDROID
 #include <presentation/fmvplayer/fmvplayer.h>
+#ifdef RAD_ANDROID
 #include <input/touch/touchhudrenderer.h>
 #endif
 

@@ -21,8 +21,8 @@ set(RADSOUND_SOURCES
 	"src/radsound/streamplayer.cpp"
 )
 
-# Backend Win32 SOLO en Windows desktop
-if(WIN32 OR ANDROID)
+# Backend Win32/OpenAL en Windows desktop y Linux
+if(WIN32 OR ANDROID OR (UNIX AND NOT APPLE AND NOT VITA))
 	list(APPEND RADSOUND_SOURCES
 		"src/hal/win32/buffer.cpp"
 		"src/hal/win32/bufferloader.cpp"
@@ -73,22 +73,4 @@ if(SRR2_BUILD_TESTS AND NOT ANDROID)
 endif()
 
 
-
-
-
-
-#  OpenAL fuera de Android (en Android no se usa por ahora)
-if(NOT ANDROID)
-	target_include_directories(radsound PRIVATE ${OPENAL_INCLUDE_DIR})
-	target_link_libraries(radsound
-	radcore
-)
-endif()
-
-target_link_libraries(radsound PUBLIC radcore)
-
-#  OpenAL fuera de Android (en Android no se linkea por ahora)
-if(NOT ANDROID)
-	target_link_libraries(radsound ${OPENAL_LIBRARY})
-endif()
 

@@ -4,6 +4,8 @@
 
 build/
 **/build/
+build-host/
+**/build-host/
 
 .cxx/
 **/.cxx/
