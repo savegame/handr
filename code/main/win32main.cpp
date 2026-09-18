@@ -306,6 +306,18 @@ void ProcessCommandLineArguments(int argc, char* argv[])
     {
         rDebugPrintf( "arg%d: %s\n", i, argv[i] );
 
+        //
+        // -gamedir <path> sets the game data directory. It is passed to the
+        // file system through SRR2_GAME_DIR, which radSdlDrive picks up when
+        // the drive is constructed later during foundation init.
+        //
+        if( ( strcmp( argv[ i ], "-gamedir" ) == 0 || strcmp( argv[ i ], "gamedir" ) == 0 )
+            && i + 1 < argc )
+        {
+            SDL_setenv( "SRR2_GAME_DIR", argv[ ++i ], 1 );
+            continue;
+        }
+
         CommandLineOptions::HandleOption( argv[i] );
     }
 

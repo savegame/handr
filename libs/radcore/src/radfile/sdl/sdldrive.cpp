@@ -310,6 +310,11 @@ radSdlDrive::radSdlDrive(const char* pdrivespec, radMemoryAllocator alloc)
     m_pDriveThread = new(alloc) radDriveThread(m_pMutex, alloc);
     rAssert(m_pDriveThread != NULL);
 
+    // Must start empty: the branches below only fill m_DrivePath when it is
+    // unset, and an uninitialized buffer would skip them with garbage in the
+    // first byte.
+    m_DrivePath[0] = '\0';
+
     radGetDefaultDrive(m_DriveName);
 
     // ============================================================
