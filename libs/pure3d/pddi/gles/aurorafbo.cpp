@@ -53,12 +53,12 @@ static const char* auroraBlitFragmentShader =
 
 static const GLfloat auroraBlitQuad[] =
 {
-    -1.0f, -1.0f,  0.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 1.0f,
-     1.0f,  1.0f,  1.0f, 0.0f,
-    -1.0f, -1.0f,  0.0f, 1.0f,
-     1.0f,  1.0f,  1.0f, 0.0f,
-    -1.0f,  1.0f,  0.0f, 0.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f,  1.0f,  0.0f, 1.0f,
 };
 
 pglAuroraFBO* pglAuroraFBO::GetInstance()

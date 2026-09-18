@@ -360,6 +360,15 @@ radSdlDrive::radSdlDrive(const char* pdrivespec, radMemoryAllocator alloc)
     // Si no te han puesto drive path, defines el root por plataforma
     if (!m_DrivePath[0])
     {
+        const char* gameDir = getenv("SRR2_GAME_DIR");
+        if (gameDir && gameDir[0])
+        {
+            strncpy(m_DrivePath, gameDir, radFileFilenameMax);
+            m_DrivePath[radFileFilenameMax] = '\0';
+            rDebugPrintf("radSdlDrive: drive path from SRR2_GAME_DIR: %s\n", m_DrivePath);
+        }
+        else
+        {
     #if defined(RAD_AURORA)
         const char* homeDir = getenv("HOME");
         if (homeDir && homeDir[0])
@@ -386,6 +395,7 @@ radSdlDrive::radSdlDrive(const char* pdrivespec, radMemoryAllocator alloc)
         strncpy(m_DrivePath, cwd, radFileFilenameMax);
         SDL_free(cwd);
     #endif
+        }
         m_DrivePath[radFileFilenameMax] = '\0';
     }
 #endif
