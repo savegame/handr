@@ -1056,6 +1056,10 @@ bool Win32Platform::OnDriveError( radFileError error, const char* pDriveName, vo
             char errorString[256];
             sprintf( errorString, "%s:\n%s", ERROR_STRINGS[error], adjustedName );
             fprintf(stderr, "error: %s\n", errorString);
+#ifdef RAD_AURORA
+            fprintf( stderr, "fatal: game data file not found, exiting (check -gamedir path)\n" );
+            exit( 1 );
+#endif
             DisplaySplashScreen( Error, errorString, 1.0f, 0.0f, 0.0f, tColour(255, 255, 255), 0 );
             mErrorState = P_ERROR;
             mPauseForError = true;
