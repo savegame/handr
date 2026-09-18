@@ -45,6 +45,35 @@
 #include <SDL_system.h>
 #endif
 
+#if defined(RAD_AURORA)
+#include <sys/stat.h>
+#include <sys/types.h>
+
+// mkdir -p для песочницы $HOME/.local/share/<org>/<app>/; пути не канонизируются
+static void radSdlCreateDirRecursive(const char* path)
+{
+    char tmp[radFileFilenameMax + 1];
+    size_t len = strlen(path);
+    if(len == 0 || len > radFileFilenameMax)
+        return;
+
+    strcpy(tmp, path);
+    if(tmp[len - 1] == '/')
+        tmp[len - 1] = '\0';
+
+    for(char* p = tmp + 1; *p; p++)
+    {
+        if(*p == '/')
+        {
+            *p = '\0';
+            mkdir(tmp, 0755);
+            *p = '/';
+        }
+    }
+    mkdir(tmp, 0755);
+}
+#endif
+
 
 
 #if defined(RAD_ANDROID)
@@ -331,7 +360,21 @@ radSdlDrive::radSdlDrive(const char* pdrivespec, radMemoryAllocator alloc)
     // Si no te han puesto drive path, defines el root por plataforma
     if (!m_DrivePath[0])
     {
-    #if SDL_MAJOR_VERSION < 3
+    #if defined(RAD_AURORA)
+        const char* homeDir = getenv("HOME");
+        if (homeDir && homeDir[0])
+        {
+            snprintf(m_DrivePath, radFileFilenameMax, "%s/.local/share/%s/%s/", homeDir, AURORA_ORG, AURORA_APP);
+            m_DrivePath[radFileFilenameMax] = '\0';
+            radSdlCreateDirRecursive(m_DrivePath);
+            rDebugPrintf("radSdlDrive: drive path (Aurora sandbox): %s\n", m_DrivePath);
+        }
+        else
+        {
+            getcwd(m_DrivePath, radFileFilenameMax);
+            strncat(m_DrivePath, "/", radFileFilenameMax);
+        }
+    #elif SDL_MAJOR_VERSION < 3
     #ifdef WIN32
         _getcwd(m_DrivePath, radFileFilenameMax);
     #else

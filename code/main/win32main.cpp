@@ -27,6 +27,10 @@
 #include <unistd.h>
 #endif
 
+#if defined(RAD_AURORA)
+#include <stdlib.h>
+#endif
+
 #ifdef __SWITCH__
 #include <switch.h>
 #endif
@@ -95,6 +99,10 @@ static void LogOutputFunction( void *userdata, int category, SDL_LogPriority pri
 //=============================================================================
 extern "C" int main( int argc, char *argv[] )
 {
+#ifdef RAD_AURORA
+    // PulseAudio stream role для Авроры (до SDL_Init, пока ещё нет аудио-потоков)
+    setenv("PULSE_PROP_media.role", "x-maemo", 1);
+#endif
 #ifdef __SWITCH__
 #ifdef RAD_DEBUG
     socketInitializeDefault();

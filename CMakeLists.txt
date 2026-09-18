@@ -15,6 +15,16 @@ option(SRR2_BUILD_TESTS "Build sample programs for internal libraries" ON)
 option(SRR2_MICROPROFILE "Use microprofile instead of the internal profiler" OFF)
 option(SRR2_P3D_CG "Use CG shaders rather than GLSL for OpenGL ES" OFF)
 option(SRR2_AURORA_FBO "Render the scene to an offscreen FBO and blit it to the window (Aurora port)" OFF)
+option(SRR2_AURORA "Target Aurora OS: enables RAD_AURORA, the Aurora FBO pipeline and Aurora-specific paths" OFF)
+set(SRR2_AURORA_ORG "ru.sashikknox" CACHE STRING "Aurora app organization name (XDG data path)")
+set(SRR2_AURORA_APP "hitandrun" CACHE STRING "Aurora app name (XDG data path)")
+
+if(SRR2_AURORA)
+	set(SRR2_AURORA_FBO ON CACHE BOOL "Render the scene to an offscreen FBO and blit it to the window (Aurora port)" FORCE)
+	add_definitions(-DRAD_AURORA)
+	add_definitions(-DAURORA_ORG="${SRR2_AURORA_ORG}")
+	add_definitions(-DAURORA_APP="${SRR2_AURORA_APP}")
+endif()
 
 
 
