@@ -44,7 +44,7 @@
 #include <presentation/gui/ingame/guiscreenhud.h>
 #include <presentation/gui/ingame/guiscreenmissionload.h>
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #endif
 
@@ -174,7 +174,7 @@ void BonusMissionInfo::HandleEvent( EventEnum id, void* pEventData )
 {
     rAssert( id == EVENT_CONVERSATION_DONE );
 
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchContextResolver::GetInstance().SetGameplayConversationActive( false );
     #endif
     //
@@ -324,7 +324,7 @@ void BonusMissionInfo::SetPositions( CarStartLocator* pos1, CarStartLocator* pos
 //=============================================================================
 void BonusMissionInfo::CleanUp()
 {
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         TouchContextResolver::GetInstance().SetGameplayConversationActive( false );
     #endif
     ResetCharacterPositions();
@@ -679,7 +679,7 @@ void BonusMissionInfo::TriggerDialogue()
     mReset = false;
 
     CGuiScreenMissionBase::GetBitmapName( mPreviousMissionPic );
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         TouchContextResolver::GetInstance().SetGameplayConversationActive( true );
     #endif
     GetEventManager()->TriggerEvent( EVENT_CONVERSATION_INIT, (void*)(&mDialogEventData) );

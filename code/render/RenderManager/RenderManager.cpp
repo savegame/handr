@@ -90,9 +90,11 @@
 #endif
 
 
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
+#include <input/touch/touchhudrenderer.h>
+#endif
 #if defined(RAD_ANDROID)
 #include <android/log.h>
-#include <input/touch/touchhudrenderer.h>
 #define LOG_TAG "SimpsonsHitAndRun"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -868,7 +870,7 @@ void RenderManager::ContextUpdate( unsigned int iElapsedTime )
         GetGame()->SetTime(time);
     }
 
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         /*
         Dibujamos aqui porque este rendermanager dibuja por encima de las cinematicas
         Idea feliz quizas desde aqui podamos dibujar y forzar barras negras para las cinematicas, ya que en algunos moviles estaban bug

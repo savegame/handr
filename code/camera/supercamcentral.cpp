@@ -66,8 +66,10 @@
 
 #include <cheats/cheatinputsystem.h>
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
 #include <input/touch/touchcameracontroller.h>
+#endif
+#if defined(RAD_ANDROID)
 #include <data/config/androidconfigurationmanager.h>
 #endif
 
@@ -654,7 +656,7 @@ void SuperCamCentral::Update( unsigned int milliseconds, bool isFirstSubstep )
                 mController->GetValue( SuperCamController::cameraToggle ) == 1.0f;
         }
 
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         if ( TouchCameraController::GetInstance().ConsumeCameraToggleRequest() )
         {
             cameraTogglePressed = true;

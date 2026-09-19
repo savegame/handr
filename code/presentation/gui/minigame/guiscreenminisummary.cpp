@@ -35,7 +35,7 @@
 
 #include <supersprint/supersprintmanager.h>
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #endif
 
@@ -334,7 +334,7 @@ void CGuiScreenMiniSummary::HandleMessage
 //===========================================================================
 void CGuiScreenMiniSummary::InitIntro()
 {
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchContextResolver::GetInstance().SetSuspendedSuperSprintProfile(
         TOUCH_PROFILE_MINIGAME_SUMMARY
     );
@@ -396,7 +396,7 @@ void CGuiScreenMiniSummary::InitRunning()
 //===========================================================================
 void CGuiScreenMiniSummary::InitOutro()
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchContextResolver::GetInstance().ClearSuspendedSuperSprintProfile();
 #endif
 #ifdef RAD_PC

@@ -44,7 +44,7 @@
 //
 #include <raddebug.hpp>
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #endif
 
@@ -237,7 +237,7 @@ CGuiScreenScrapBookContents::CGuiScreenScrapBookContents
 //===========================================================================
 CGuiScreenScrapBookContents::~CGuiScreenScrapBookContents()
 {
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchContextResolver::GetInstance().SetScrapbookContentsActive( false );
     #endif
 
@@ -458,7 +458,7 @@ void CGuiScreenScrapBookContents::SetLevelBarVisible( bool isVisible )
 //===========================================================================
 void CGuiScreenScrapBookContents::InitIntro()
 {
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchContextResolver::GetInstance().SetScrapbookContentsActive( true );
     #endif
     // this is needed here to update all the unlocked n/N values
@@ -511,7 +511,7 @@ void CGuiScreenScrapBookContents::InitRunning()
 //===========================================================================
 void CGuiScreenScrapBookContents::InitOutro()
 {
-    #if defined(RAD_ANDROID)
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchContextResolver::GetInstance().SetScrapbookContentsActive( false );
     #endif
 }

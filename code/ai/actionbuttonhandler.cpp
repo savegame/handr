@@ -111,7 +111,7 @@
 #include <contexts/context.h>
 #include <render/DSG/StatePropDSG.h>
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #endif
 
@@ -4655,7 +4655,7 @@ bool PurchaseCar::OnButtonPressed( Character* pCharacter )
 
         if( s_carPurchaseConvNames[level].convName != 0 )
         {
-            #ifdef RAD_ANDROID
+            #if defined(RAD_ANDROID) || defined(RAD_AURORA)
                 TouchContextResolver::GetInstance().SetPurchaseRewardConversationActive( true );
             #endif
             DialogEventData data;

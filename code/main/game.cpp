@@ -63,16 +63,17 @@
 #include <input/touch/touchinputmodemanager.h>
 #include <input/touch/touchinputadapter.h>
 #endif
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #include <input/touch/touchhudsystem.h>
-#include <input/touch/touchinputadapter.h>
 #include <worldsim/avatarmanager.h>
 #include <input/touch/touchassetextractor.h>
 #include <input/touch/touchassetmanager.h>
 #include <input/touch/touchhudrenderer.h>
-#include <data/config/androidconfigurationmanager.h>
 #include <input/touch/touchcontrolsconfigurationmanager.h>
+#endif
+#ifdef RAD_ANDROID
+#include <data/config/androidconfigurationmanager.h>
 #endif
 
 #if defined(RAD_ANDROID)
@@ -94,7 +95,7 @@ Game* Game::spInstance = NULL;
 
 bool g_inDemoMode = false;
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
 
 static bool GetTouchAvatarInVehicleForPlayer0()
 {
@@ -246,7 +247,7 @@ static void UpdateTouchHudSystemFromSDLEvent( const SDL_Event& msg )
 #endif
 }
 
-#endif // RAD_ANDROID
+#endif // RAD_ANDROID || RAD_AURORA
 
 #ifdef RAD_WIN32
 
@@ -706,22 +707,28 @@ void Game::Initialize()
     //
     mpPlatform->InitializePlatform();
 
-    // Extraemos el layout tactil contenido en el apk en archivos leibles para que el pure3d mas adelante lo pueda renderizar en el juego 
-    //APK->com.c4rlox.simpsons/files/touch_controls/icono.png
+    // Touch HUD: assets -> config -> renderer (same pipeline as Android,
+    // but assets are plain files in the package / game dir on Aurora).
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     #ifdef RAD_ANDROID
+    // Extraemos el layout tactil contenido en el apk en archivos leibles para que el pure3d mas adelante lo pueda renderizar en el juego
+    //APK->com.c4rlox.simpsons/files/touch_controls/icono.png
     TouchAssetExtractor::GetInstance().EnsureAssetsExtracted();
-    // Realizamos la carga con pure3d de los iconos extraidos anteriormente 
+    #endif
+    // Realizamos la carga con pure3d de los iconos extraidos anteriormente
     TouchAssetManager::GetInstance().Initialize();
-    // Cargamos la configuración personalizada de controles táctiles del jugador (en caso de que exista) antes de inicializar el sistema de renderizado de iconos 
+    // Cargamos la configuración personalizada de controles táctiles del jugador (en caso de que exista) antes de inicializar el sistema de renderizado de iconos
     TouchControlsConfigurationManager::GetInstance().Initialize();
 
     // Realizamos inicializacion del render, pero aqui no es donde solicitamos el renderizado,solo iniciamos el sistema de render
     TouchHudRenderer::GetInstance().Initialize();
 
+    #ifdef RAD_ANDROID
     // hacemos que se utilice en el ciclo del juego al arrancar la configuración del archivo Simpsons_configuration.txt
     GetAndroidConfigurationManager()->Initialize();
-
-
+    #else
+    SDL_Log( "[TouchHud] touch HUD initialized (Aurora)" );
+    #endif
     #endif
 
     //
@@ -776,7 +783,7 @@ void Game::Terminate()
     rAssert( mpTimerList != NULL );
     rAssert( mpPlatform != NULL );
 
-    #ifdef RAD_ANDROID
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     // Primero apagamos el render y despues liberamos los assets(iconos tactiles)
     TouchHudRenderer::GetInstance().Shutdown();
     TouchAssetManager::GetInstance().Shutdown();
@@ -860,7 +867,7 @@ void Game::Run()
         unsigned newTime =  radTimeGetMilliseconds();
         unsigned elapsed = newTime - time;
         time = newTime;
-        #ifdef RAD_ANDROID
+        #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         UpdateTouchContextResolverFromGame();
         TouchHudSystem::GetInstance().Update( elapsed );
         #endif
@@ -891,7 +898,7 @@ void Game::Run()
             }
 #endif
             UpdateTouchInputModeFromSDLEvent( msg );
-            #ifdef RAD_ANDROID
+            #if defined(RAD_ANDROID) || defined(RAD_AURORA)
                 UpdateTouchHudSystemFromSDLEvent( msg );
             #endif
 #if SDL_MAJOR_VERSION < 3

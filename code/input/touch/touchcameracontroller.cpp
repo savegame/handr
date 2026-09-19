@@ -121,7 +121,7 @@ void TouchCameraController::Update( unsigned int elapsedMs )
 {
     (void)elapsedMs;
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     if ( !TouchInputModeManager::GetInstance().ShouldShowTouchHud() )
     {
         TouchHudSystem::GetInstance().ConsumeCameraDragDelta();

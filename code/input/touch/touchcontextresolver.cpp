@@ -236,7 +236,7 @@ void TouchContextResolver::UpdateFromGameState
         return;
     }
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     /*
      * Real FMV/cinematic.
      *

@@ -17,7 +17,7 @@
 //========================================
 #include <input/mappable.h>
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
 #include <input/touch/touchcameracontroller.h>
 #endif
 //========================================
@@ -176,7 +176,7 @@ inline float SuperCamController::GetAxisValue( unsigned int buttonId ) const
 #else
     float value = GetValue( buttonId );
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     if ( buttonId == stickX )
     {
         value += TouchCameraController::GetInstance().GetLookX();

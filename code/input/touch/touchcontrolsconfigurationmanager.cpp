@@ -14,6 +14,16 @@
 #define TOUCH_CONTROLS_CONFIG_LOG_TAG "SimpsonsHitAndRun"
 #define TOUCH_CONTROLS_CONFIG_LOGI(...) __android_log_print(ANDROID_LOG_INFO, TOUCH_CONTROLS_CONFIG_LOG_TAG, __VA_ARGS__)
 #define TOUCH_CONTROLS_CONFIG_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TOUCH_CONTROLS_CONFIG_LOG_TAG, __VA_ARGS__)
+#elif defined(RAD_AURORA)
+#include <SDL.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define TOUCH_CONTROLS_CONFIG_LOG_TAG "SimpsonsHitAndRun"
+#define TOUCH_CONTROLS_CONFIG_LOGI(...) SDL_Log(__VA_ARGS__)
+#define TOUCH_CONTROLS_CONFIG_LOGE(...) SDL_Log(__VA_ARGS__)
 #else
 #define TOUCH_CONTROLS_CONFIG_LOGI(...)
 #define TOUCH_CONTROLS_CONFIG_LOGE(...)
@@ -185,7 +195,7 @@ bool TouchControlsConfigurationManager::IsInitialized() const
 
 bool TouchControlsConfigurationManager::Save()
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     return true;
 #else
     if ( !BuildPaths() )
@@ -535,7 +545,45 @@ TouchRect TouchControlsConfigurationManager::GetEffectiveRect
 
 bool TouchControlsConfigurationManager::BuildPaths()
 {
-#if !defined(RAD_ANDROID)
+#if defined(RAD_AURORA)
+    /*
+     * Aurora sandbox, same root radSdlDrive uses for save data:
+     * $HOME/.local/share/<AURORA_ORG>/<AURORA_APP>/touch_controls
+     */
+    const char* homeDir = getenv( "HOME" );
+
+    if ( homeDir == 0 || homeDir[ 0 ] == '\0' )
+    {
+        return false;
+    }
+
+    snprintf(
+        mConfigRoot,
+        sizeof( mConfigRoot ),
+        "%s/.local/share/%s/%s/touch_controls",
+        homeDir,
+        AURORA_ORG,
+        AURORA_APP
+    );
+
+    snprintf(
+        mConfigPath,
+        sizeof( mConfigPath ),
+        "%s/%s",
+        mConfigRoot,
+        TOUCH_CONTROLS_CONFIGURATION_FILENAME
+    );
+
+    snprintf(
+        mVersionPath,
+        sizeof( mVersionPath ),
+        "%s/%s",
+        mConfigRoot,
+        TOUCH_CONTROLS_CONFIGURATION_VERSION_FILENAME
+    );
+
+    return true;
+#elif !defined(RAD_ANDROID)
     strncpy( mConfigRoot, ".", sizeof( mConfigRoot ) );
     mConfigRoot[ sizeof( mConfigRoot ) - 1 ] = '\0';
 
@@ -591,7 +639,7 @@ bool TouchControlsConfigurationManager::BuildPaths()
 
 bool TouchControlsConfigurationManager::EnsureDirectory( const char* path ) const
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     (void)path;
     return true;
 #else
@@ -769,7 +817,7 @@ bool TouchControlsConfigurationManager::WriteVersionFile() const
 
 bool TouchControlsConfigurationManager::WriteDefaultConfigurationFile() const
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     return true;
 #else
     FILE* file = fopen( mConfigPath, "wb" );

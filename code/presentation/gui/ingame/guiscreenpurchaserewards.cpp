@@ -51,7 +51,7 @@
 
 #include <string.h>
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #endif
 
@@ -503,7 +503,7 @@ eFEHotspotType CGuiScreenPurchaseRewards::CheckCursorAgainstHotspots( float x, f
 void CGuiScreenPurchaseRewards::InitIntro()
 {
 
-    #ifdef RAD_ANDROID
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         TouchContextResolver::GetInstance().SetPurchaseRewardConversationActive( false );
     #endif
     // load 3D pedestal

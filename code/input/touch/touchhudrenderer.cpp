@@ -151,7 +151,7 @@ void TouchHudRenderer::Render()
         return;
     }
 
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchAssetManager& assetManager = TouchAssetManager::GetInstance();
 
     if ( !assetManager.IsInitialized() )
@@ -210,7 +210,7 @@ void TouchHudRenderer::Render()
 
 bool TouchHudRenderer::BeginTouchHud2D()
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     return false;
 #else
     if ( p3d::pddi == 0 )
@@ -244,7 +244,7 @@ bool TouchHudRenderer::BeginTouchHud2D()
 
 void TouchHudRenderer::EndTouchHud2D()
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     if ( p3d::pddi == 0 )
     {
         return;
@@ -265,7 +265,7 @@ void TouchHudRenderer::EndTouchHud2D()
 
 bool TouchHudRenderer::GetRenderDimensions( float& width, float& height ) const
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     width = 0.0f;
     height = 0.0f;
     return false;
@@ -308,7 +308,7 @@ void TouchHudRenderer::RenderSpriteInPixelRect
     float opacity
 )
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     if ( sprite == 0 )
     {
         return;
@@ -381,7 +381,7 @@ void TouchHudRenderer::RenderControlDefinition
     float renderHeight
 )
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     if ( !control.enabled || !control.visibleByDefault )
     {
         return;
@@ -473,7 +473,7 @@ void TouchHudRenderer::RenderMovementJoystick
     float renderHeight
 )
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     if ( currentProfile != TOUCH_PROFILE_CHARACTER )
     {
         return;
@@ -601,7 +601,7 @@ void TouchHudRenderer::RenderMovementJoystick
 
 void TouchHudRenderer::RenderVisibleControls(TouchProfile currentProfile,float renderWidth,float renderHeight)
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchHudSystem& hudSystem = TouchHudSystem::GetInstance();
 
     const unsigned int controlCount = hudSystem.GetControlCount();
@@ -700,7 +700,7 @@ void TouchHudRenderer::ComputeAspectFitRect
 
 void TouchHudRenderer::RenderCinematicSkip()
 {
-#if defined(RAD_ANDROID)
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     /*
      * Only render this overlay when touch HUD is allowed.
      * If the player is using a physical gamepad, do not draw touch UI.

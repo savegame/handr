@@ -28,7 +28,7 @@
 
 #include <raddebug.hpp>
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA) || defined(RAD_AURORA)
 #include <input/touch/touchcontextresolver.h>
 #endif
 
@@ -79,7 +79,7 @@ CGuiManagerLanguage::CGuiManagerLanguage
 //===========================================================================
 CGuiManagerLanguage::~CGuiManagerLanguage()
 {
-    #ifdef RAD_ANDROID
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         TouchContextResolver::GetInstance().SetLanguageSelectionActive( false );
     #endif
 
@@ -136,7 +136,7 @@ CGuiManagerLanguage::Start( CGuiWindow::eGuiWindowID initialWindow )
 
     if( !isLanguageSupported || CommandLineOptions::Get( CLO_LANG_PROMPT ) )
     {
-        #ifdef RAD_ANDROID
+        #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         TouchContextResolver::GetInstance().SetLanguageSelectionActive( true ); // le indicamos que vamos a entrar en la pantalla de idiomas
         #endif
         m_nextScreen = CGuiWindow::GUI_SCREEN_ID_LANGUAGE;
@@ -203,7 +203,7 @@ void CGuiManagerLanguage::HandleMessage
             }
             else if( GUI_FE_SHUTTING_DOWN == m_state )
             {
-                #ifdef RAD_ANDROID
+                #if defined(RAD_ANDROID) || defined(RAD_AURORA)
                 TouchContextResolver::GetInstance().SetLanguageSelectionActive( false );
                 #endif
 

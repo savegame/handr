@@ -32,7 +32,7 @@
 #include <input/inputmanager.h>
 #endif
 #include <presentation/fmvplayer/fmvplayer.h>
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
 #include <input/touch/touchhudrenderer.h>
 #endif
 
@@ -315,7 +315,7 @@ void FrontEndRenderLayer::Render()
             DrawCoinObject();
         
         
-        #ifdef RAD_ANDROID
+        #if defined(RAD_ANDROID) || defined(RAD_AURORA)
         TouchHudRenderer::GetInstance().Render(); // Excelente sitio para renderizar pero hay que vigilar el caso de cinematica
         #endif
         HeapMgr()->PopHeap( GMA_TEMP );

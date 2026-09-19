@@ -27,7 +27,7 @@
 #include <Page.h>
 #include <Text.h>
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
 #include <input/touch/touchhudsystem.h>
 #endif
 
@@ -169,7 +169,7 @@ MEMTRACK_POP_GROUP("CGUIScreenPauseOptions");
 //===========================================================================
 CGuiScreenPauseOptions::~CGuiScreenPauseOptions()
 {
-    #ifdef RAD_ANDROID
+    #if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchHudSystem::GetInstance().SetTouchControlsEditorEntryAllowed( false );
     #endif
 
@@ -298,7 +298,7 @@ void CGuiScreenPauseOptions::InitIntro()
     GetCheatInputSystem()->SetEnabled( true );
 #endif
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchHudSystem::GetInstance().SetTouchControlsEditorEntryAllowed( true );
 #endif
 }
@@ -339,7 +339,7 @@ void CGuiScreenPauseOptions::InitOutro()
     GetCheatInputSystem()->SetEnabled( false );
 #endif
 
-#ifdef RAD_ANDROID
+#if defined(RAD_ANDROID) || defined(RAD_AURORA)
     TouchHudSystem::GetInstance().SetTouchControlsEditorEntryAllowed( false );
 #endif
 }

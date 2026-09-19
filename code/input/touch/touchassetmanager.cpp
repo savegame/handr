@@ -15,6 +15,14 @@
 #define TOUCH_ASSET_MANAGER_LOG_TAG "SimpsonsHitAndRun"
 #define TOUCH_ASSET_MANAGER_LOGI(...) __android_log_print(ANDROID_LOG_INFO, TOUCH_ASSET_MANAGER_LOG_TAG, __VA_ARGS__)
 #define TOUCH_ASSET_MANAGER_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TOUCH_ASSET_MANAGER_LOG_TAG, __VA_ARGS__)
+#elif defined(RAD_AURORA)
+#include <SDL.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+
+#define TOUCH_ASSET_MANAGER_LOG_TAG "SimpsonsHitAndRun"
+#define TOUCH_ASSET_MANAGER_LOGI(...) SDL_Log(__VA_ARGS__)
+#define TOUCH_ASSET_MANAGER_LOGE(...) SDL_Log(__VA_ARGS__)
 #else
 #define TOUCH_ASSET_MANAGER_LOGI(...)
 #define TOUCH_ASSET_MANAGER_LOGE(...)
@@ -58,7 +66,7 @@ TouchAssetManager::~TouchAssetManager()
 
 bool TouchAssetManager::LoadAllSprites()
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     return true;
 #else
    bool allLoaded = true;
@@ -254,7 +262,7 @@ allLoaded = LoadSpriteForAsset(
 
 bool TouchAssetManager::LoadSpriteForAsset(TouchAssetId assetId,const char* relativePath,const char* spriteName)
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     (void)assetId;
     (void)relativePath;
     (void)spriteName;
@@ -297,7 +305,7 @@ bool TouchAssetManager::LoadSpriteForAsset(TouchAssetId assetId,const char* rela
 
 bool TouchAssetManager::Initialize()
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     mInitialized = true;
     return true;
 #else
@@ -645,7 +653,83 @@ tSprite* TouchAssetManager::GetSpriteForControl( TouchHudControlId controlId ) c
 
 bool TouchAssetManager::BuildAssetRoot()
 {
-#if !defined(RAD_ANDROID)
+#if defined(RAD_AURORA)
+    /*
+     * Aurora: touch PNGs are plain files. Resolution order:
+     *   1. Package resources: /usr/share/<AURORA_ORG>.<AURORA_APP>/touch_controls
+     *      (on device the package tree is visible through symlinks).
+     *   2. $SRR2_GAME_DIR/touch_controls (host runs / -gamedir data dir).
+     *   3. ./touch_controls (current working directory fallback).
+     *   4. $HOME/.local/share/<AURORA_ORG>/<AURORA_APP>/touch_controls
+     *      (user-provided override, same sandbox root as radSdlDrive).
+     */
+    static const char* kPackageRoot =
+        "/usr/share/" AURORA_ORG "." AURORA_APP "/touch_controls";
+
+    const char* candidates[ 4 ] = { kPackageRoot, 0, 0, 0 };
+
+    char gameDirPath[ MAX_TOUCH_PATH ];
+    char cwdPath[ MAX_TOUCH_PATH ];
+    char sandboxPath[ MAX_TOUCH_PATH ];
+
+    const char* gameDir = getenv( "SRR2_GAME_DIR" );
+    if ( gameDir != 0 && gameDir[ 0 ] != '\0' )
+    {
+        snprintf(
+            gameDirPath,
+            sizeof( gameDirPath ),
+            "%s/touch_controls",
+            gameDir
+        );
+        candidates[ 1 ] = gameDirPath;
+    }
+
+    candidates[ 2 ] = "./touch_controls";
+
+    const char* homeDir = getenv( "HOME" );
+    if ( homeDir != 0 && homeDir[ 0 ] != '\0' )
+    {
+        snprintf(
+            sandboxPath,
+            sizeof( sandboxPath ),
+            "%s/.local/share/%s/%s/touch_controls",
+            homeDir,
+            AURORA_ORG,
+            AURORA_APP
+        );
+        candidates[ 3 ] = sandboxPath;
+    }
+
+    for ( unsigned int i = 0; i < 4; ++i )
+    {
+        if ( candidates[ i ] == 0 )
+        {
+            continue;
+        }
+
+        struct stat info;
+        if ( stat( candidates[ i ], &info ) == 0 && S_ISDIR( info.st_mode ) )
+        {
+            strncpy( mAssetRoot, candidates[ i ], sizeof( mAssetRoot ) );
+            mAssetRoot[ sizeof( mAssetRoot ) - 1 ] = '\0';
+
+            TOUCH_ASSET_MANAGER_LOGI(
+                "[TouchAssetManager] Asset root: %s",
+                mAssetRoot
+            );
+
+            return true;
+        }
+    }
+
+    // Nothing found: keep the package path so the error messages point
+    // at a well-defined location; sprites simply fail to load (HUD stays
+    // input-functional without icons, same as Android behaviour).
+    strncpy( mAssetRoot, kPackageRoot, sizeof( mAssetRoot ) );
+    mAssetRoot[ sizeof( mAssetRoot ) - 1 ] = '\0';
+
+    return true;
+#elif !defined(RAD_ANDROID)
     return true;
 #else
     const char* storagePath = SDL_AndroidGetExternalStoragePath();
@@ -673,7 +757,7 @@ tSprite* TouchAssetManager::LoadSpriteFromFile
     const char* spriteName
 )
 {
-#if !defined(RAD_ANDROID)
+#if !defined(RAD_ANDROID) && !defined(RAD_AURORA)
     (void)relativePath;
     (void)spriteName;
     return 0;
