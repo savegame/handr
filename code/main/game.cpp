@@ -45,6 +45,10 @@
 #include <main/win32platform.h>
 #endif
 
+#ifdef RAD_AURORA
+#include <main/mce_keepalive.h>
+#endif
+
 #ifdef RAD_GAMECUBE
 #include <main/gamecube_extras/gcmanager.h>
 #endif
@@ -954,7 +958,12 @@ void Game::Run()
         ::radFileService();
         ::radDbgComService();
         ::radDebugConsoleService();
-        
+
+#ifdef RAD_AURORA
+        // GLib main context MCE-модуля (таймер продления запрета гашения)
+        mce_keepalive_pump();
+#endif
+
         if( CommandLineOptions::Get( CLO_MEMORY_MONITOR) )
         {
             ::radMemoryMonitorService();

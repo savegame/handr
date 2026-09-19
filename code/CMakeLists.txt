@@ -550,6 +550,12 @@ if(SRR2_REGION STREQUAL "PAL")
 	)
 endif()
 
+if(SRR2_AURORA)
+	# MCE keepalive (запрет гашения экрана): чистый C, GLib/GIO system bus
+	pkg_check_modules(MCE_KEEPALIVE REQUIRED IMPORTED_TARGET glib-2.0 gio-2.0)
+	list(APPEND SRR2_SOURCES "main/mce_keepalive.c")
+endif()
+
 if(ANDROID)
     add_library(main SHARED ${SRR2_SOURCES})
     set(SRR2_TARGET main)
@@ -575,6 +581,10 @@ target_link_libraries(${SRR2_TARGET}
 	sim
 	Threads::Threads
 )
+
+if(SRR2_AURORA)
+	target_link_libraries(${SRR2_TARGET} PkgConfig::MCE_KEEPALIVE)
+endif()
 
 # --- Android: OpenAL + libs del sistema ---
 if(ANDROID)

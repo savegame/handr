@@ -29,6 +29,7 @@
 
 #if defined(RAD_AURORA)
 #include <stdlib.h>
+#include "mce_keepalive.h"
 #endif
 
 #ifdef __SWITCH__
@@ -144,6 +145,15 @@ extern "C" int main( int argc, char *argv[] )
     SDL_Init( SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD );
 
     SDL_SetLogOutputFunction( LogOutputFunction, NULL );
+#endif
+
+#ifdef RAD_AURORA
+    // Запрет гашения экрана через MCE; на системах без MCE (хост) init вернёт
+    // false и модуль станет no-op
+    if( mce_keepalive_init() )
+    {
+        mce_keepalive_set_prevent_blanking( true );
+    }
 #endif
 
 
@@ -273,6 +283,9 @@ extern "C" int main( int argc, char *argv[] )
     //
     // Shutdown SDL subsystems
     //
+#ifdef RAD_AURORA
+    mce_keepalive_shutdown();
+#endif
     SDL_Quit();
 
     //

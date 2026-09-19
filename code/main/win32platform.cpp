@@ -18,6 +18,10 @@
 #ifdef RAD_AURORA_FBO
 #include <pddi/gles/aurorafbo.hpp>
 #endif
+
+#ifdef RAD_AURORA
+#include "mce_keepalive.h"
+#endif
 // Standard Lib
 #include <stdlib.h>
 #include <string.h>
@@ -2371,6 +2375,10 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
                         RenderFlow* rf = GetRenderFlow();
 
                         rf->SetGamma( rf->GetGamma() );
+#ifdef RAD_AURORA
+                        // Возврат на передний план — снова запрещаем гашение
+                        mce_keepalive_set_prevent_blanking( true );
+#endif
                         if( pInputManager )
                         {
                             //GetInputManager()->SetRumbleForDevice(0, true);
@@ -2380,6 +2388,11 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
                     break;
 
                 case SDL_WINDOWEVENT_FOCUS_LOST:  // Window is being hidden (not in focus)
+#ifdef RAD_AURORA
+                    // Сворачивание (на wayland Авроры MINIMIZED/APP_* не приходят,
+                    // приходит потеря фокуса) — возвращаем штатное гашение
+                    mce_keepalive_set_prevent_blanking( false );
+#endif
 #ifndef RAD_ANDROID               
 					SDL_SetWindowGammaRamp( wnd,
                         DesktopGammaRamp[0],
@@ -2409,6 +2422,9 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
                         RenderFlow* rf = GetRenderFlow();
 
                         rf->SetGamma( rf->GetGamma() );
+#ifdef RAD_AURORA
+                        mce_keepalive_set_prevent_blanking( true );
+#endif
                         if( pInputManager )
                         {
                             //GetInputManager()->SetRumbleForDevice(0, true);
@@ -2421,6 +2437,9 @@ bool SDLCALL Win32Platform::WndProc( void * userdata, SDL_Event * event )
                     break;
 
                 case SDL_EVENT_WINDOW_FOCUS_LOST:  // Window is being hidden (not in focus)
+#ifdef RAD_AURORA
+                    mce_keepalive_set_prevent_blanking( false );
+#endif
                     if( pInputManager )
                     {
                         //GetInputManager()->SetRumbleForDevice(0, false);
