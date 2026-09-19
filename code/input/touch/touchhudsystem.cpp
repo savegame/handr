@@ -125,6 +125,7 @@ TouchHudSystem::TouchHudSystem():mEnabled( true ),mCurrentProfile( TOUCH_PROFILE
 mCurrentInteractionType( TOUCH_INTERACTION_NONE ),mCurrentInteractionIcon( TOUCH_INTERACTION_ICON_NONE ),mTouchInputWasSuppressed (false),
 mTouchControlsEditorEntryAllowed( false ),mTouchControlsEditModeActive( false ),mCurrentEditableLayout( TOUCH_EDITABLE_LAYOUT_CHARACTER ),
 mEditingControlId( TOUCH_HUD_CONTROL_NONE ),mEditingControlWasDragged( false ),mEditingFrontendArrowGroup( false ),
+mSprintLatched( false ),
 mEditingStartPosition( 0.0f, 0.0f ),mEditingLastPosition( 0.0f, 0.0f ),mTouchControlsEditorMainMenuEntryAllowed( false ),mTouchControlsEditorMinigameEntryAllowed( false ),
 mCurrentEditorFlow( TOUCH_CONTROLS_EDITOR_FLOW_NONE )
 {
@@ -155,6 +156,8 @@ void TouchHudSystem::Reset()
         InitializeDefaultControls();
     }
     mTouchInputWasSuppressed = false;
+
+    mSprintLatched = false;
 
     mTouchControlsEditorEntryAllowed = false;
     mTouchControlsEditorMainMenuEntryAllowed = false;
@@ -700,13 +703,21 @@ void TouchHudSystem::ClearActiveTouches()
     }
 
     // Release any active button actions before resetting fingers.
+    // The sprint toggle keeps its latched state on finger release; it is
+    // released below via ClearSprintLatch() instead.
     unsigned int i = 0;
     for ( i = 0; i < MAX_ACTIVE_FINGERS; ++i )
     {
         if ( mFingers[ i ].active &&
              mFingers[ i ].role == TOUCH_HUD_FINGER_ROLE_BUTTON )
         {
-            QueueControlAction( mFingers[ i ].controlId, 0.0f );
+            const TouchHudControlDefinition* control =
+                GetControlDefinition( mFingers[ i ].controlId );
+
+            if ( control == 0 || control->action != TOUCH_ACTION_SPRINT )
+            {
+                QueueControlAction( mFingers[ i ].controlId, 0.0f );
+            }
         }
 
         mFingers[ i ].Reset();
@@ -714,6 +725,20 @@ void TouchHudSystem::ClearActiveTouches()
 
     mMovement.Reset();
     mCameraDrag.Reset();
+
+    ClearSprintLatch();
+}
+
+void TouchHudSystem::ClearSprintLatch()
+{
+    if ( !mSprintLatched )
+    {
+        return;
+    }
+
+    mSprintLatched = false;
+
+    QueueTouchAction( TOUCH_ACTION_SPRINT, 0.0f );
 }
 
 TouchProfile TouchHudSystem::GetCurrentProfile() const
@@ -829,6 +854,12 @@ const TouchHudControlDefinition* TouchHudSystem::GetControlDefinition( TouchHudC
 
 bool TouchHudSystem::IsControlPressed( TouchHudControlId controlId ) const
 {
+    // A latched sprint toggle shows its pressed state while it is active.
+    if ( controlId == TOUCH_HUD_CONTROL_CHARACTER_SPRINT && mSprintLatched )
+    {
+        return true;
+    }
+
     unsigned int i = 0;
     for ( i = 0; i < MAX_ACTIVE_FINGERS; ++i )
     {
@@ -1620,6 +1651,16 @@ void TouchHudSystem::BeginButton
         return;
     }
 
+    if ( control->action == TOUCH_ACTION_SPRINT )
+    {
+        // Toggle behaviour: tap to latch sprint on, tap again to release.
+        // Finger release must not clear it (handled in EndButton).
+        mSprintLatched = !mSprintLatched;
+
+        QueueTouchAction( control->action, mSprintLatched ? 1.0f : 0.0f );
+        return;
+    }
+
     QueueTouchAction( control->action, 1.0f );
 }
 
@@ -1678,7 +1719,14 @@ void TouchHudSystem::EndButton( TouchHudFingerState* finger )
         return;
     }
 
-   QueueControlAction( finger->controlId, 0.0f );
+    const TouchHudControlDefinition* control = GetControlDefinition( controlId );
+
+    // The sprint toggle stays latched on finger release; it is cleared via
+    // ClearSprintLatch() on profile change / suppression / reset instead.
+    if ( control == 0 || control->action != TOUCH_ACTION_SPRINT )
+    {
+        QueueControlAction( finger->controlId, 0.0f );
+    }
 
     ReleaseFinger( finger );
 }

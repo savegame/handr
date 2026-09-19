@@ -385,6 +385,13 @@ private:
     bool mEditingControlWasDragged;
     bool mEditingFrontendArrowGroup;
 
+    // Touch sprint toggle: one tap latches the character sprint (virtual B)
+    // on, a second tap releases it. Cleared whenever active touches are
+    // cleared (profile change, suppression, reset).
+    bool mSprintLatched;
+
+    void ClearSprintLatch();
+
     TouchVector2 mEditingStartPosition;
     TouchVector2 mEditingLastPosition;
         
