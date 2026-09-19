@@ -60,7 +60,15 @@ extern "C"
     #include <libavformat/avformat.h>
     #include <libswscale/swscale.h>
     #include <libswresample/swresample.h>
+    #include <libavutil/version.h>
 }
+
+// AVFrame::duration was added in FFmpeg 6.0 (libavutil 58); FFmpeg 5.x has pkt_duration
+#if LIBAVUTIL_VERSION_MAJOR >= 58
+    #define RAD_AVFRAME_DURATION(f) ((f)->duration)
+#else
+    #define RAD_AVFRAME_DURATION(f) ((f)->pkt_duration)
+#endif
 
 //=============================================================================
 // Constants
@@ -796,7 +804,7 @@ void radMoviePlayer::Service( void ) {
 
 // duration en ms (con fallback si FFmpeg da 0)
                                 unsigned int durMs = 0;
-                                int64_t dur = m_pVideoFrame->duration;
+                                int64_t dur = RAD_AVFRAME_DURATION(m_pVideoFrame);
 
                                 if (dur > 0) {
                                     durMs = (unsigned int) av_rescale_q(dur, tb,
