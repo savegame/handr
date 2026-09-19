@@ -397,6 +397,12 @@ bool Win32Platform::InitializeWindow()
     // you can remove this line.
     //flags |= SDL_WINDOW_FULLSCREEN; // lo comento por ahora julioh 
 //#endif
+#if defined(RAD_AURORA)
+    // Лендскейфт-игра на всю панель устройства; drawable = нативное разрешение экрана.
+    // Обычный SDL_WINDOW_FULLSCREEN (не DESKTOP) — проще, чем ручной расчёт по
+    // SDL_GetDisplayUsableBounds: SDL сам берёт текущий видеорежим дисплея.
+    flags |= SDL_WINDOW_FULLSCREEN;
+#endif
 
     int w, h;
     TranslateResolution( StartingResolution, w, h );
@@ -656,7 +662,13 @@ void Win32Platform::InitializePlatform()
     //
     // Show in fullscreen if fullscreen flag is set.
     //
+#if defined(RAD_AURORA)
+    // На Авроре окно всегда fullscreen, независимо от настройки windowed
+    mFullscreen = true;
+    SDL_SetWindowFullscreen( mWnd, SDL_WINDOW_FULLSCREEN );
+#else
     SDL_SetWindowFullscreen( mWnd, mFullscreen ? SDL_WINDOW_FULLSCREEN : 0 );
+#endif
 #endif
 
     //
@@ -2243,10 +2255,15 @@ bool Win32Platform::IsResolutionSupported( Resolution res, int bpp ) const
 void Win32Platform::ResizeWindow()
 {
     // If fullscreen, no need to change the window size.
+#if defined(RAD_AURORA)
+    // Окно на Авроре всегда fullscreen: размер задаёт видеорежим дисплея
+    return;
+#else
     if( mFullscreen )
     {
         return;
     }
+#endif
 
     int w,h;
     TranslateResolution( mResolution, w, h );

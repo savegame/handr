@@ -142,13 +142,27 @@ void pglAuroraFBO::Destroy()
 
 bool pglAuroraFBO::Resize(int width, int height)
 {
-    int targetWidth = (int)((float)width * scale);
-    int targetHeight = (int)((float)height * scale);
+    // FBO всегда в нативной ориентации игры (ландшафтной): портретный буфер разворачиваем осями
+    int baseWidth = width;
+    int baseHeight = height;
+    const bool portraitBuffer = height > width;
+    if(portraitBuffer)
+    {
+        baseWidth = height;
+        baseHeight = width;
+    }
+
+    int targetWidth = (int)((float)baseWidth * scale);
+    int targetHeight = (int)((float)baseHeight * scale);
 
     if(targetWidth < 1)
         targetWidth = 1;
     if(targetHeight < 1)
         targetHeight = 1;
+
+    SDL_Log("AuroraFBO: real %dx%d (%s buffer) x scale %.3f -> FBO %dx%d",
+        width, height, portraitBuffer ? "portrait" : "landscape",
+        scale, targetWidth, targetHeight);
 
     DestroyTargets();
 

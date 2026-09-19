@@ -312,6 +312,9 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
     reset = true;
 
     mode = m;
+#if !defined(RAD_AURORA)
+    // Fullscreen-видеорежим выбирается под запрошенное разрешение; на Авроре
+    // режим не трогаем — drawable должен оставаться нативным разрешением панели
     SDL_DisplayMode displayMode = {}, closestMode = {};
     displayMode.w = x;
     displayMode.h = y;
@@ -323,9 +326,15 @@ bool pglDisplay ::InitDisplay(const pddiDisplayInit* init)
     if(SDL_GetClosestFullscreenDisplayMode((SDL_DisplayID)displayInfo->id, x, y, 0.0f, false, &closestMode))
         SDL_SetWindowFullscreenMode(win, &closestMode);
 #endif
+#endif
 
 #ifndef __SWITCH__
+#if defined(RAD_AURORA)
+    // Окно всегда fullscreen (игровой режим windowed на Авроре не используется)
+    SDL_SetWindowFullscreen(win, SDL_WINDOW_FULLSCREEN);
+#else
     SDL_SetWindowFullscreen(win, mode == PDDI_DISPLAY_FULLSCREEN ? SDL_WINDOW_FULLSCREEN : 0);
+#endif
 #endif
 
 #if defined(RAD_ANDROID) || defined(__ANDROID__)
