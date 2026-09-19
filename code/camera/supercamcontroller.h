@@ -186,6 +186,17 @@ inline float SuperCamController::GetAxisValue( unsigned int buttonId ) const
         value += TouchCameraController::GetInstance().GetLookY();
     }
 
+    #if defined(RAD_AURORA)
+    // SDL gamepads and the touch swipe both report stick-right as positive, while
+    // the console camera code expects the opposite sign. Flip once here so that
+    // "stick/swipe right = camera right" by default; the pause-menu "Invert Cam"
+    // option still toggles the direction at the camera level.
+    if ( buttonId == stickX )
+    {
+        value = -value;
+    }
+    #endif
+
     if ( value > 1.0f )
     {
         value = 1.0f;
