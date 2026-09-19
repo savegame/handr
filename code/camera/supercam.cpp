@@ -133,7 +133,11 @@ SuperCam::SuperCam() :
 #ifndef WORLD_BUILDER
     if(p3d::display->IsWidescreen())
     {
+#ifdef RAD_AURORA_FBO
+        mSCAspect = pddiDisplayAspect(p3d::display);
+#else
         mSCAspect = ( 16.0f / 9.0f );
+#endif
     }
 #endif
 }

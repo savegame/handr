@@ -337,6 +337,15 @@ protected:
    bool m_only60;
 };
 
+#ifdef RAD_AURORA_FBO
+// Реальный аспект рендер-таргета вместо жёсткого 16:9 (панели бывают шире)
+inline float pddiDisplayAspect(pddiDisplay* display)
+{
+   int height = display->GetHeight();
+   return height > 0 ? (float)display->GetWidth() / (float)height : (16.0f / 9.0f);
+}
+#endif
+
 
 //-------------------------------------------------------------------
 // pddiPrimBuffer - retained mode rendering

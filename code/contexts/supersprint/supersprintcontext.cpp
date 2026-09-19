@@ -172,7 +172,11 @@ void SuperSprintContext::OnStart( ContextEnum previousContext )
     rm->SetLevelLayerLights( NULL );
 
 
-    float aspect = p3d::display->IsWidescreen() ? (16.0f / 9.0f) : (4.0f / 3.0f);
+    #ifdef RAD_AURORA_FBO
+        float aspect = pddiDisplayAspect(p3d::display);
+#else
+        float aspect = p3d::display->IsWidescreen() ? (16.0f / 9.0f) : (4.0f / 3.0f);
+#endif
 
     unsigned int view = 0;
 

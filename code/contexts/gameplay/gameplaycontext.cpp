@@ -228,7 +228,11 @@ void GameplayContext::OnStart( ContextEnum previousContext )
         rAssert( sun );
         rm->SetLevelLayerLights( sun );
 
+        #ifdef RAD_AURORA_FBO
+        float aspect = pddiDisplayAspect(p3d::display);
+#else
         float aspect = p3d::display->IsWidescreen() ? (16.0f / 9.0f) : (4.0f / 3.0f);
+#endif
 
         if( iNumPlayers == 2 )
         {

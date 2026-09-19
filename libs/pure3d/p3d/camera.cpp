@@ -9,8 +9,12 @@
 
 tCamera::tCamera()
 {
+#ifdef RAD_AURORA_FBO
+    SetFOV(rmt::DegToRadian(90.0f), p3d::display ? pddiDisplayAspect(p3d::display) : (4.0f / 3.0f));
+#else
     bool widescreen = p3d::display ? p3d::display->IsWidescreen() : false;
     SetFOV(rmt::DegToRadian(90.0f), widescreen  ? (16.0f / 9.0f) : (4.0f / 3.0f));
+#endif
 
     nearPlane = 1.0f;
     farPlane = 1000.0f;

@@ -28,7 +28,11 @@ tEntity* tCameraLoader::LoadObject(tChunkFile* f, tEntityStore* store)
     long version = f->GetLong();
     float fov = f->GetFloat();
     float a = f->GetFloat();
+#ifdef RAD_AURORA_FBO
+    float aspectratio = pddiDisplayAspect(p3d::display);
+#else
     float aspectratio = p3d::display->IsWidescreen() ? (16.0f / 9.0f) : a;
+#endif
     float nearclip = f->GetFloat();
     float farclip = f->GetFloat();
 
